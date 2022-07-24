@@ -10,7 +10,7 @@ class Airport(models.Model):
 
 
 class Flight(models.Model):
-    flight_number = models.CharField(max_length=20, primary_key=True)
+    flight_number = models.CharField(max_length=20)
     take_off = models.DateTimeField()
     landing = models.DateTimeField()
     to_airport = models.ForeignKey(Airport, on_delete=models.DO_NOTHING,

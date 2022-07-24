@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    depends_on:
+      - web
+    restart: "on-failure"
+    volumes:
+      - static_volume:/home/app/web/flight_tracking_application/static/
+
+  web:
+    build: .
+    command: sh -c "python manage.py collectstatic --noinput &&
+                    python manage.py makemigrations &&
+                    python manage.py migrate &&
+                    gunicorn flight_tracking_application.wsgi:application --bind 0.0.0.0:8000"
+    image: flight_tracking_app
+    expose:
+      - 8000
+
+    restart: "on-failure"
+    volumes:
+      - .:/web
+      - static_volume:/home/app/web/flight_tracking_application/static/
+
+volumes:
+  static_volume:

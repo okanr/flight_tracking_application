@@ -1,28 +1,34 @@
-from rest_framework.decorators import api_view
+from django.db.models import Count
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
+from rest_framework import viewsets
 from .models import Airport, Flight
-from .serializers import AirportSerializer, FlightSerializer
+from .serializers import AirportSerializer, FlightSerializer, CountSerializer
 
 
 @api_view(['GET'])
-def flight_api_overview(request):
+def api_overview(request):
     api_urls = {
-        'all_items': '/',
-        'Add': '/create',
-        'Update': '/update/pk',
-        'Delete': '/item/pk/delete'
+        'Airports': '/airport',
+        'Flights': '/flight',
     }
 
     return Response(api_urls)
 
 
-@api_view(['GET'])
-def airport_api_overview(request):
-    api_urls = {
-        'all_items': '/',
-        'Add': '/create',
-        'Update': '/update/pk',
-        'Delete': '/item/pk/delete'
-    }
+class AirportViewSet(viewsets.ModelViewSet):
+    serializer_class = AirportSerializer
+    queryset = Airport.objects.all()
 
-    return Response(api_urls)
+
+class FlightViewSet(viewsets.ModelViewSet):
+    serializer_class = FlightSerializer
+    queryset = Flight.objects.all()
+
+    @action(detail=False, methods=['GET'], name='Flight Counts Based On Flight Number')
+    def highlight(self, request, *args, **kwargs):
+        queryset = Flight.objects.all().values('flight_number').\
+            annotate(count=Count('flight_number'))
+
+        serializer = CountSerializer(queryset, many=True)
+        return Response(serializer.data)
